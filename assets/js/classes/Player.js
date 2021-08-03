@@ -16,19 +16,15 @@ class Player extends Phaser.Physics.Arcade.Image {
   update(cursors) {
     this.body.setVelocity(0);
     if (cursors.left.isDown) {
-      console.log("left");
       this.body.setVelocityX(-this.velocity);
     } else if (cursors.right.isDown) {
-      console.log("right");
       this.body.setVelocityX(this.velocity);
     }
 
     if (cursors.up.isDown) {
       this.body.setVelocityY(-this.velocity);
-      console.log("up");
     } else if (cursors.down.isDown) {
       this.body.setVelocityY(this.velocity);
-      console.log("down");
     }
   }
 }
