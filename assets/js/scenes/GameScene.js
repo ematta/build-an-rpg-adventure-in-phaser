@@ -12,7 +12,7 @@ class GameScene extends Phaser.Scene {
   create() {
     this.createMap();
     this.createAudio();
-    this.createChest();
+    this.createGroups();
     this.createInput();
     this.createGameManager();
   }
@@ -26,38 +26,34 @@ class GameScene extends Phaser.Scene {
   createPlayer(location) {
     this.player = new Player(this, location[0], location[2], "characters", 0);
   }
-  createChest() {
-    // creage chest group
+  createGroups() {
     this.chests = this.physics.add.group();
-    // specifyy max number of chests we can have
-    // array of possible locations for chest to spawn at
-    this.chestPositions = [
-      [100, 100],
-      [200, 200],
-      [300, 300],
-      [400, 400],
-      [500, 500],
-    ];
-    this.maxNumberOfChests = 3;
-    // spawn a chest
-    for (let i = 0; i < this.maxNumberOfChests; i++) {
-      this.spawnChest();
-    }
   }
 
-  spawnChest() {
-    const location =
-      this.chestPositions[
-        Math.floor(Math.random() * this.chestPositions.length)
-      ];
+  spawnChest(chestObject) {
     let chest = this.chests.getFirstDead();
     if (!chest) {
       // add to chest group
-      this.chests.add(new Chest(this, location[0], location[1], "items", 0));
+      this.chests.add(
+        new Chest(
+          this,
+          chestObject.x * 2,
+          chestObject.y * 2,
+          "items",
+          0,
+          chestObject.gold,
+          chestObject.id
+        )
+      );
     } else {
-      chest.setPosition(location[0], location[1]);
+      chest.coins = chestObject.gold;
+      chest.id = chestObject.id;
+      chest.setPosition(chestObject.x * 2, chestObject.y * 2);
       chest.makeActive();
     }
+  }
+  spawnMonster(monster) {
+    console.log(monster);
   }
   createInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -85,7 +81,7 @@ class GameScene extends Phaser.Scene {
     // make chest inactive
     chest.makeInactive();
     // spawn new chest
-    this.time.delayedCall(1000, this.spawnChest, [], this);
+    this.events.emit("pickUpChest", chest.id);
   }
   createMap() {
     this.map = new Map(this, "map", "background", "background", "blocked");
@@ -94,6 +90,12 @@ class GameScene extends Phaser.Scene {
     this.events.on("spawnPlayer", (location) => {
       this.createPlayer(location);
       this.addCollisions();
+    });
+    this.events.on("chestSpawned", (chest) => {
+      this.spawnChest(chest);
+    });
+    this.events.on("monsterSpawned", (monster) => {
+      this.spawnMonster(monster);
     });
     this.gameManager = new GameManager(this, this.map.map.objects);
     this.gameManager.setup();
